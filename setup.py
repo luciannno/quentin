@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
@@ -18,5 +20,6 @@ setup(
     author_email='luciano@brunette.me.uk',
     url='https://github.com/luciano/quentin',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs', 'bin'))
+    packages=find_packages(exclude=('tests', 'docs', 'bin')), #[ 'quentin', 'dataaccess' ]
+    package_dir={ 'quentin' : 'src' }
 )

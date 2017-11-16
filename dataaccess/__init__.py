@@ -1,1 +1,2 @@
-from .YahooAccess import YahooAccess
+#from .YahooAccess import YahooAccess
+from .GoogleAccess import *

@@ -6,40 +6,50 @@ import os
 import sys
 import time
 import datetime
-import threading
-import quentin
-import dataaccess
+import argparse
+import logging
 
-def main_loop():
+from dataaccess import datagather
 
-    print "Test time:", datetime.datetime.time(datetime.datetime.now())
+# Thread timeout
+_TIMEOUT_ = 5.0
+# Maximum number of threads running at the same time
+_MAX_THREADS_ = 10
 
+def gather(exchange, instruments):
+    """
+    Initialise threads to download data
+    """
+
+    threads = [datagather.DataGather(exchange, instrument) for instrument in instruments]
+
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join(_TIMEOUT_)
+
+    #for idx, t in enumerate(threads):
+    #    print "This is ", idx, "|", t.exchange, ":", t.instrument
+    #    print "Data:", t.RESULT
+        
+    return [t.RESULT for t in threads]
 
 if __name__ == '__main__':
 
-    t = quentin.text()
-    d = dataaccess.YahooAccess()
+    parser = argparse.ArgumentParser(prog='Quentin Data Gather Engine',
+                                     description='Gathers data from Finance data sources',
+                                     epilog='This program might infring data source\'s TOS.')
 
-    try:
+    parser.add_argument('-x', '--exchange', metavar='exchange', type=str, dest='exchange', required=True, help='Exchange that the instrument can be found')
+    parser.add_argument('-i', '--instruments', metavar='instruments', type=str, action='append', dest='instruments', required=True, help='Instrument to query data source')
+    parser.add_argument('-v', '--verbosity', action='store_true', default=False, help="The verbosity of the output reporting for the found search results.")
+    
+    args = parser.parse_args()
 
-        print d.MakeYahooURL("test")        
+    print args
+    
+    results = gather(args.exchange, args.instruments)
 
-        t.do_text()
-        now = datetime.datetime.now()
-        run_at = now + datetime.timedelta(seconds=0)
-        delay = (run_at - now).total_seconds()
-        run_at = now.replace(day=now.day, hour=17, minute=0, second=0, microsecond=0)
-        delta_time = run_at - now
-
-        #main_loop()
-
-        print "Now:", now
-        print "Run at:", run_at
-        print "Delta:", delta_time
- 
-        #t = threading.Timer(delta_time.seconds+1, main_loop)
-        #t.start()
-
-    except KeyboardInterrupt:
-        print >> sys.stderr, '\nExiting by user request.\n'
-        sys.exit(0)      
+    for result in results:
+        print result
