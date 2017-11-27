@@ -34,10 +34,9 @@ def get_google_finance_intraday(exchange, instrument, period=60, days=1):
                                                                                        instrument=instrument,
                                                                                        period=period,
                                                                                        days=days)
-
     page = requests.get(uri)
     reader = csv.reader(page.content.splitlines())
-    columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+    columns = ['open_price', 'high_price', 'low_price', 'close_price', 'volume']
     rows = []
     times = []
     for row in reader:
@@ -50,7 +49,7 @@ def get_google_finance_intraday(exchange, instrument, period=60, days=1):
             rows.append(map(float, row[1:]))
             
     if len(rows):
-       return pd.DataFrame(rows, index=pd.DatetimeIndex(times, name='Date'),
+       return pd.DataFrame(rows, index=pd.DatetimeIndex(times, name='price_date'),
                             columns=columns)
     else:
-        return pd.DataFrame(rows, index=pd.DatetimeIndex(times, name='Date'))
+        return pd.DataFrame(rows, index=pd.DatetimeIndex(times, name='price_date'))

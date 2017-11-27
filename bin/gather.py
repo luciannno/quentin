@@ -9,7 +9,9 @@ import datetime
 import argparse
 import logging
 
-from dataaccess import datagather
+#from dataaccess import datagather
+#from dataaccess import DBAccess
+import dataaccess as dt
 
 # Thread timeout
 _TIMEOUT_ = 5.0
@@ -21,7 +23,7 @@ def gather(exchange, instruments):
     Initialise threads to download data
     """
 
-    threads = [datagather.DataGather(exchange, instrument) for instrument in instruments]
+    threads = [dt.datagather.DataGather(exchange, instrument[0], instrument[1]) for instrument in instruments]
 
     for t in threads:
         t.start()
@@ -29,27 +31,58 @@ def gather(exchange, instruments):
     for t in threads:
         t.join(_TIMEOUT_)
 
-    #for idx, t in enumerate(threads):
-    #    print "This is ", idx, "|", t.exchange, ":", t.instrument
-    #    print "Data:", t.RESULT
-        
     return [t.RESULT for t in threads]
 
 if __name__ == '__main__':
 
+    exchange    = None
+    instruments = None
+    
     parser = argparse.ArgumentParser(prog='Quentin Data Gather Engine',
                                      description='Gathers data from Finance data sources',
                                      epilog='This program might infring data source\'s TOS.')
 
     parser.add_argument('-x', '--exchange', metavar='exchange', type=str, dest='exchange', required=True, help='Exchange that the instrument can be found')
-    parser.add_argument('-i', '--instruments', metavar='instruments', type=str, action='append', dest='instruments', required=True, help='Instrument to query data source')
+    parser.add_argument('-i', '--instruments', metavar='instruments', type=str, action='append', dest='instruments', required=False, help='Instrument to query data source')
+    parser.add_argument('-o', '--output', metavar='output', type=str, dest='output', required=False, help='Set output directory')
     parser.add_argument('-v', '--verbosity', action='store_true', default=False, help="The verbosity of the output reporting for the found search results.")
-    
+    parser.add_argument('-s', '--save', action='store_true', default=False, help="Save all results in database")
+
     args = parser.parse_args()
 
-    print args
+    db = dt.DBAccess()
     
-    results = gather(args.exchange, args.instruments)
+    if args.exchange and args.instruments:
+        #exchange = args.exchange
+        #instruments = args.instruments
+        pass
 
-    for result in results:
-        print result
+    elif args.exchange:
+        exchange = args.exchange
+        instruments = db.getAllInstrumentsinExchange(args.exchange)
+
+
+    #print instruments[0]
+    #print [i[0] for i in instruments]
+        
+    if exchange and instruments:
+        
+        results = gather(exchange, instruments)
+
+        for result in results:
+            
+            st = datetime.datetime.fromtimestamp(result['start']).strftime('%Y-%m-%d %H:%M:%S')
+            en = datetime.datetime.fromtimestamp(result['end']).strftime('%Y-%m-%d %H:%M:%S')
+
+            if args.output:
+                file      = "{}_{}.txt".format(result['exchange'], result['instrument'])
+                folder    = args.output
+                full_path = os.path.join(folder, file)
+                result['data'].to_json(full_path)
+
+            #try:
+            #    result['data'].to_sql(con=self.db.engine, name='min_price', if_exists='append', index=False)
+            #except Exception, e:
+            #    print 'Failed to mysql' + str(e)
+                
+            print "Instrument:", result['exchange'], ":", result['instrument'], "| Start: ", st, "| End: ", en
