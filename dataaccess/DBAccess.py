@@ -15,9 +15,9 @@ class DBAccess(object):
     logger = None
 
     def __init__(self):
-        hostname = "brunette.com.br"
-        username = "renaissance"
-        password = "luciano"
+        hostname = "host"
+        username = "user"
+        password = "pass"
         database = "renaissance"
         self.connection = MySQLdb.connect(hostname, username, password, database) #, cursorclass=MySQLdb.cursors.DictCursor
         self.cursor = self.connection.cursor()
