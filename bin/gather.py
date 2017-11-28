@@ -35,6 +35,18 @@ def gather(exchange, instruments):
 
 if __name__ == '__main__':
 
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    # create a file handler
+    handler = logging.FileHandler('work/quentin/log/quentin.log')
+    handler.setLevel(logging.DEBUG)
+    # create a logging format
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    # add the handlers to the logger
+    logger.addHandler(handler)
+
     exchange    = None
     instruments = None
     
@@ -61,6 +73,7 @@ if __name__ == '__main__':
         exchange = args.exchange
         instruments = db.getAllInstrumentsinExchange(args.exchange)
 
+    logger.debug('Exchange: {}'.format(exchange))
 
     #print instruments[0]
     #print [i[0] for i in instruments]
@@ -84,5 +97,31 @@ if __name__ == '__main__':
             #    result['data'].to_sql(con=self.db.engine, name='min_price', if_exists='append', index=False)
             #except Exception, e:
             #    print 'Failed to mysql' + str(e)
-                
-            print "Instrument:", result['exchange'], ":", result['instrument'], "| Start: ", st, "| End: ", en
+
+            frame = result['data']
+            frame.reset_index(level=0, inplace=True)    
+            wildcards = ','.join(['%s'] * len(frame.columns))
+            cols=[k for k in frame.dtypes.index]
+            colnames = ','.join(cols)
+            insert_sql = 'INSERT IGNORE INTO %s (%s) VALUES (%s)' % ('min_price', colnames, wildcards)
+            data = [tuple(x) for x in frame.values]
+
+            #print data[0:3]
+            
+            #print insert_sql
+            
+            #result['data'].reset_index(level=0, inplace=True) #['price_date'] = result['data'].price_date
+            #data_dict = result['data'].index.tolist()
+
+            #print data_dict[0]
+            
+            #print result['data'].columns.values.tolist()
+            #print result['data'].index.name
+            
+            db.cursor.executemany(insert_sql, data)
+            logger.info("Instrument: {} : {} | Start: {} | End: {}".format(result['exchange'], result['instrument'], st, en))
+
+            logger.debug('Rows affected: {}'.format(db.cursor.rowcount))
+            
+            db.connection.commit()
+            
