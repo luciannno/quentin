@@ -2,6 +2,7 @@ import logging
 import pandas as pd
 import MySQLdb
 import MySQLdb.cursors
+import db_config as cfg
 from sqlalchemy import create_engine
 
 class DBAccess(object):
@@ -15,15 +16,15 @@ class DBAccess(object):
     logger = None
 
     def __init__(self):
-        hostname = "host"
-        username = "user"
-        password = "pass"
-        database = "renaissance"
+        hostname = cfg.mysql['host']
+        username = cfg.mysql['user']
+        password = cfg.mysql['passwd']
+        database = cfg.mysql['db']
         self.connection = MySQLdb.connect(hostname, username, password, database) #, cursorclass=MySQLdb.cursors.DictCursor
         self.cursor = self.connection.cursor()
         self.logger = logging.getLogger("quentin")
 
-        self.engine = create_engine('mysql+mysqlconnector://{}:{}@{}/{}'.format(username, password, hostname, database))
+        #self.engine = create_engine('mysql+mysqlconnector://{}:{}@{}/{}'.format(username, password, hostname, database))
         
     def __del__(self):
         self.connection.close()

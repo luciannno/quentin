@@ -8,6 +8,7 @@ import time
 import datetime
 import argparse
 import logging
+import quentin_config as cfg
 
 #from dataaccess import datagather
 #from dataaccess import DBAccess
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     # create a file handler
-    handler = logging.FileHandler('work/quentin/log/quentin.log')
+    handler = logging.FileHandler(cfg.quentin['logfile'])
     handler.setLevel(logging.DEBUG)
     # create a logging format
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
