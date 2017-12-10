@@ -10,8 +10,6 @@ import argparse
 import logging
 import quentin_config as cfg
 
-#from dataaccess import datagather
-#from dataaccess import DBAccess
 import dataaccess as dt
 
 # Thread timeout
@@ -40,7 +38,7 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     # create a file handler
-    handler = logging.FileHandler(cfg.quentin['logfile'])
+    handler = logging.FileHandler(cfg.quentin['gather_log'])
     handler.setLevel(logging.DEBUG)
     # create a logging format
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

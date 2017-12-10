@@ -3,12 +3,10 @@ import pandas as pd
 import MySQLdb
 import MySQLdb.cursors
 import db_config as cfg
-from sqlalchemy import create_engine
 
 class DBAccess(object):
     """
     Class for DB access
-    @TODO: DB information should be taken from a cfg file or something similiar
     """
     
     _connection = None
@@ -99,11 +97,12 @@ class DBAccess(object):
         try:
             self.cursor.execute(query, tuple(data.values()))
             self.connection.commit()
-        except:
+        except Exception as e:
             self.connection.rollback()
-            raise Exception
+            raise Exception("Insert to table {} caused an exception. {}".format(table, e))
             
         return self.cursor.lastrowid
+
 
     def getAllInstrumentsinExchange(self, exchange):
         """
@@ -121,18 +120,35 @@ class DBAccess(object):
 
         """
         
-        self.query("""select i.id, i.google_symbol, i.yahoo_symbol, i.prefered_download, e.time_zone
+        sql = """select i.id, i.google_symbol, i.yahoo_symbol, i.prefered_download, e.time_zone
                                 from instrument as i inner join exchange as e
-                                on i.exchange_id = e.id""")
+                                on i.exchange_id = e.id"""
 
         return self._returnList(sql)
+
+    def getCompany(self, name):
+        """
+
+        :param name:
+        :return:
+        """
+
+        sql = """select name, sector, industry
+                      from company
+                      where name = %s"""
+
+        #self.query(query)
+        return self._returnList(sql, [name])
 
 
     def getMinData(self, instrument_id):
         """
         Retrive Minute Data from Database for a single instrument
         """
-        self.query("select * from min_price as i where instrument_id = %s and price_date >= '2016-02-12 20:45:00' order by price_date asc", [ instrument_id ])
+        self.query("""select * "
+                   "from min_price as i "
+                   "where instrument_id = %s and price_date >= '2016-02-12 20:45:00' "
+                   "order by price_date asc""", [instrument_id])
         headers =  [n[0] for n in self.cursor.description]
         rows = self.cursor.fetchall() # return list of tuples
         ret = pd.DataFrame(list(rows), columns = headers) #need to get
