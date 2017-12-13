@@ -22,7 +22,7 @@ def gather(exchange, instruments):
     Initialise threads to download data
     """
 
-    threads = [dt.datagather.DataGather(exchange, instrument[0], instrument[1]) for instrument in instruments]
+    threads = [dt.datagather.DataGather(exchange, instrument) for instrument in instruments]
 
     for t in threads:
         t.start()

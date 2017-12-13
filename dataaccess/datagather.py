@@ -10,11 +10,11 @@ class DataGather(threading.Thread):
     Query data provider engine
     """
 
-    def __init__(self, exchange, instrument, instrument_id):
+    def __init__(self, exchange, instrument):
         super(DataGather, self).__init__()
         self.exchange      = exchange
-        self.instrument    = instrument
-        self.instrument_id = instrument_id
+        self.instrument    = instrument['google_symbol']
+        self.instrument_id = instrument['id']
         
     def run(self):
         #print "Running...", self.name

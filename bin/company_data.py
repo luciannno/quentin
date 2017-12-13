@@ -58,11 +58,18 @@ if __name__ == '__main__':
     #print instruments[0]
     #print [i[0] for i in instruments]
 
-    if exchange and instruments:
+    try:
+        exchange = db.getExchange(world_ex_id=exchange)[0]
+    except:
+        print "Exchange was not found."
+        exit(1)
+
+
+    if exchange['yahoo_code'] and instruments:
 
         for instrument in instruments:
 
-            instrumentUrl = 'https://finance.yahoo.com/quote/{0}.{1}?p={0}.{1}'.format(instrument, exchange)
+            instrumentUrl = 'https://finance.yahoo.com/quote/{0}.{1}?p={0}.{1}'.format(instrument, exchange['yahoo_code'])
 
             try:
                 instrumentPage = urlopen(instrumentUrl)
@@ -72,25 +79,64 @@ if __name__ == '__main__':
                 result = p.findall(data.string)
                 d = json.loads(result[0])
             except:
-                print "Quote data not found. {}.{}".format(instrument, exchange)
+                print "Quote data not found. {}.{}".format(instrument, exchange.world_ex_id)
                 continue
 
-            price = d['context']['dispatcher']['stores']['QuoteSummaryStore']['price']
-            summaryProfile = d['context']['dispatcher']['stores']['QuoteSummaryStore']['summaryProfile']
+            quoteSummaryStore = d['context']['dispatcher']['stores']['QuoteSummaryStore']
+            price = quoteSummaryStore['price']
+            summaryProfile = quoteSummaryStore['summaryProfile']
+            quoteType = quoteSummaryStore['quoteType']
 
-            #company = {'name': price['longName'], 'sector': summaryProfile['sector'], 'industry': summaryProfile['industry']}
-            #print "Name:     {}".format(price['longName'])
-            #print "Symbol:   {}".format(price['symbol'])
-            #print "Sector:   {}".format(summaryProfile['sector'])
-            #print "Industry: {}".format(summaryProfile['industry'])
+            #print json.dumps(quoteSummaryStore, indent=2)
+
+            company = { 'id': None,
+                        'name': price['longName'],
+                        'sector': summaryProfile['sector'],
+                        'industry': summaryProfile['industry'] };
+
+            #print company
 
             try:
 
-                id = db.insertRow(table="company",
-                                  name=price['longName'], sector=summaryProfile['sector'], industry=summaryProfile['industry'])
+                company['id'] = db.insertRow(table="company",
+                                          name=company['name'],
+                                          sector=company['sector'],
+                                          industry=company['industry'])
 
             except:
 
-                id = db.getCompany(name=price['longName'])
+                company = db.getCompany(name=price['longName'])[0]
 
-            print id
+            instrument = {'id': None,
+                          'instrument_type_id': None,
+                          'company_id': company['id'],
+                          'symbol': None,
+                          'exchange_id': None,
+                          'yahoo_symbol': None,
+                          'google_symbol': None,
+                          'prefered_download': 'yahoo_symbol'}
+
+            if quoteType['quoteType'] == "EQUITY":
+                instrument['instrument_type_id'] = 3
+
+            #print exchange
+
+            instrument['symbol'] = price['symbol'].split(".")[0]
+            instrument['yahoo_symbol'] = price['symbol'].split(".")[0]
+            instrument['google_symbol'] = price['symbol'].split(".")[0]
+            instrument['currency'] = price['currency']
+            instrument['exchange_id'] = exchange['id']
+
+            #print instrument
+
+            db.insertRow(table="instrument",
+                         instrument_type_id=instrument['instrument_type_id'],
+                         company_id=instrument['company_id'],
+                         symbol=instrument['symbol'],
+                         exchange_id=exchange['id'],
+                         yahoo_symbol=instrument['yahoo_symbol'],
+                         google_symbol=instrument['google_symbol'],
+                         prefered_download=instrument['prefered_download'])
+
+    else:
+        print "Exchange not found or instruments not given."

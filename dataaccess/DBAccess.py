@@ -79,12 +79,33 @@ class DBAccess(object):
         #print self.cursor._last_executed
 
     def _returnList(self, sql, params=""):
+        """
+
+        :param sql:
+        :param params:
+        :return:
+        """
         self.query(sql, params)
         row = self.cursor.fetchall()
-        list_key_value = [list(item) for item in row] #[ [k,v] for k, v in row.items() ]
+        headers = [n[0] for n in self.cursor.description]
+        #list_key_value = [list(item) for item in row] #[ [k,v] for k, v in row.items() ]
+        list_key_value = [dict(zip(headers, d)) for d in row]
         return list_key_value #list(sum(row, ()))
-        
-        
+
+    def _selectAll(self, table, **kwargs):
+        """
+        Returns a Select * from table SQL
+        :param table: Table name
+        :param kwargs: Dictionary of names and values to select from
+        :return: sql string
+        """
+        sql = list()
+        sql.append("select * from %s " % table)
+        if kwargs:
+            sql.append("where " + " and ".join("%s = '%s'" % (k,v) for k,v in kwargs.iteritems()))
+
+        return "".join(sql)
+
     def insertRow(self, table, **data):
         """
 
@@ -117,7 +138,7 @@ class DBAccess(object):
         
     def getAllTickers(self):
         """
-
+        Return all instruments. @TODO: Perhaps add exchange to this query
         """
         
         sql = """select i.id, i.google_symbol, i.yahoo_symbol, i.prefered_download, e.time_zone
@@ -126,20 +147,27 @@ class DBAccess(object):
 
         return self._returnList(sql)
 
-    def getCompany(self, name):
+    def getCompany(self, **kwargs):
         """
 
-        :param name:
+        :param kwargs:
         :return:
         """
-
-        sql = """select name, sector, industry
-                      from company
-                      where name = %s"""
-
+        sql = self._selectAll("company", **kwargs)
         #self.query(query)
-        return self._returnList(sql, [name])
 
+        return self._returnList(sql)
+
+    def getExchange(self, **kwargs):
+        """
+
+        :param kwargs:
+        :return: list of exchanges
+        """
+        sql = self._selectAll("exchange", **kwargs)
+        #self.query(query)
+
+        return self._returnList(sql)
 
     def getMinData(self, instrument_id):
         """
