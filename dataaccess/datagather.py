@@ -12,7 +12,7 @@ class DataGather(threading.Thread):
 
     def __init__(self, exchange, instrument):
         super(DataGather, self).__init__()
-        self.exchange      = exchange
+        self.exchange      = exchange['google_code']
         self.instrument    = instrument['google_symbol']
         self.instrument_id = instrument['id']
         

@@ -39,6 +39,7 @@ def get_google_finance_intraday(exchange, instrument, period=60, days=1):
     columns = ['open_price', 'high_price', 'low_price', 'close_price', 'volume']
     rows = []
     times = []
+    #print uri
     for row in reader:
         if re.match('^[a\d]', row[0]):
             if row[0].startswith('a'):

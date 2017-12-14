@@ -69,16 +69,15 @@ if __name__ == '__main__':
         pass
 
     elif args.exchange:
-        exchange = args.exchange
-        instruments = db.getAllInstrumentsinExchange(args.exchange)
+        exchange = db.getExchange(world_ex_id=args.exchange)[0]
+        instruments = db.getAllInstrumentsinExchange(exchange['world_ex_id'])
 
-    logger.debug('Exchange: {}'.format(exchange))
+    logger.debug('Exchange: {}'.format(exchange['world_ex_id']))
 
-    #print instruments[0]
     #print [i[0] for i in instruments]
         
     if exchange and instruments:
-        
+
         results = gather(exchange, instruments)
 
         for result in results:
@@ -91,6 +90,8 @@ if __name__ == '__main__':
                 folder    = args.output
                 full_path = os.path.join(folder, file)
                 result['data'].to_json(full_path)
+
+            #print result
 
             #try:
             #    result['data'].to_sql(con=self.db.engine, name='min_price', if_exists='append', index=False)
@@ -105,7 +106,7 @@ if __name__ == '__main__':
             insert_sql = 'INSERT IGNORE INTO %s (%s) VALUES (%s)' % ('min_price', colnames, wildcards)
             data = [tuple(x) for x in frame.values]
 
-            #print data[0:3]
+            #print data
             
             #print insert_sql
             
@@ -116,10 +117,9 @@ if __name__ == '__main__':
             
             #print result['data'].columns.values.tolist()
             #print result['data'].index.name
-            
+
             db.cursor.executemany(insert_sql, data)
             logger.info("Instrument: {} : {} | Start: {} | End: {}".format(result['exchange'], result['instrument'], st, en))
-
             logger.debug('Rows affected: {}'.format(db.cursor.rowcount))
             
             db.connection.commit()
