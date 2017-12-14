@@ -131,14 +131,19 @@ if __name__ == '__main__':
 
             print instrument
 
-            db.insertRow(table="instrument",
-                         instrument_type_id=instrument['instrument_type_id'],
-                         company_id=instrument['company_id'],
-                         symbol=instrument['symbol'],
-                         exchange_id=exchange['id'],
-                         yahoo_symbol=instrument['yahoo_symbol'],
-                         google_symbol=instrument['google_symbol'],
-                         prefered_download=instrument['prefered_download'])
+            try:
+
+                db.insertRow(table="instrument",
+                             instrument_type_id=instrument['instrument_type_id'],
+                             company_id=instrument['company_id'],
+                             symbol=instrument['symbol'],
+                             exchange_id=exchange['id'],
+                             yahoo_symbol=instrument['yahoo_symbol'],
+                             google_symbol=instrument['google_symbol'],
+                             prefered_download=instrument['prefered_download'])
+
+            except:
+                print "Insert instrument failed {} {}".format(instrument['symbol'], exchange['id'])
 
     else:
         print "Exchange not found or instruments not given."
