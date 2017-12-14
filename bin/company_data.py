@@ -64,6 +64,7 @@ if __name__ == '__main__':
         print "Exchange was not found."
         exit(1)
 
+    print exchange
 
     if exchange['yahoo_code'] and instruments:
 
@@ -79,7 +80,8 @@ if __name__ == '__main__':
                 result = p.findall(data.string)
                 d = json.loads(result[0])
             except:
-                print "Quote data not found. {}.{}".format(instrument, exchange.world_ex_id)
+                print instrumentUrl
+                print "Quote data not found. {}.{}".format(instrument, exchange['world_ex_id'])
                 continue
 
             quoteSummaryStore = d['context']['dispatcher']['stores']['QuoteSummaryStore']
@@ -92,7 +94,7 @@ if __name__ == '__main__':
             company = { 'id': None,
                         'name': price['longName'],
                         'sector': summaryProfile['sector'],
-                        'industry': summaryProfile['industry'] };
+                        'industry': summaryProfile['industry']};
 
             #print company
 
@@ -127,7 +129,7 @@ if __name__ == '__main__':
             instrument['currency'] = price['currency']
             instrument['exchange_id'] = exchange['id']
 
-            #print instrument
+            print instrument
 
             db.insertRow(table="instrument",
                          instrument_type_id=instrument['instrument_type_id'],

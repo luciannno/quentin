@@ -132,7 +132,7 @@ class DBAccess(object):
         
         sql = """SELECT a.google_symbol, a.id 
         FROM instrument as a inner join exchange as b on a.exchange_id=b.id 
-        where b.google_code = %s""";
+        where b.world_ex_id = %s""";
 
         return self._returnList(sql, [exchange])
         
