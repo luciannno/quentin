@@ -35,7 +35,7 @@ def gather(exchange, instruments):
     for j in range(0, thread_total, _MAX_THREADS_):
         try:
             for i in range(j, j+_MAX_THREADS_, 1):
-                print "Start thread: ", i
+                #print "Start thread: ", i
                 if i < thread_total:
                     threads[i].start()
                 else:
@@ -46,7 +46,7 @@ def gather(exchange, instruments):
 
         try:
             for i in range(j, j+_MAX_THREADS_, 1):
-                print "Join thread: ", i
+                #print "Join thread: ", i
                 if i < thread_total:
                     threads[i].join(_TIMEOUT_)
                 else:
