@@ -15,7 +15,7 @@ import dataaccess as dt
 # Thread timeout
 _TIMEOUT_ = 5.0
 # Maximum number of threads running at the same time
-_MAX_THREADS_ = 10
+_MAX_THREADS_ = 8
 
 def gather(exchange, instruments):
     """
@@ -24,13 +24,25 @@ def gather(exchange, instruments):
 
     threads = [dt.datagather.DataGather(exchange, instrument) for instrument in instruments]
 
-    for t in threads:
-        t.start()
+    #for t in threads:
+    #    t.start()
 
-    for t in threads:
-        t.join(_TIMEOUT_)
+    #for t in threads:
+    #    t.join(_TIMEOUT_)
+
+    for j in range(0, len(threads), _MAX_THREADS_):
+        try:
+            for i in range(j, j+_MAX_THREADS_, 1):
+                threads[i].start()
+
+            for i in range(j, j+_MAX_THREADS_, 1):
+                threads[i].join(_TIMEOUT_)
+        except:
+            continue
 
     return [t.RESULT for t in threads]
+
+
 
 if __name__ == '__main__':
 
@@ -78,7 +90,11 @@ if __name__ == '__main__':
         
     if exchange and instruments:
 
+        #p_queue = zip(instruments, instruments[1:], instruments[2:], instruments[3:])
+
         results = gather(exchange, instruments)
+
+        sys.exit(0)
 
         for result in results:
             
