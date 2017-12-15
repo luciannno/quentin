@@ -30,18 +30,32 @@ def gather(exchange, instruments):
     #for t in threads:
     #    t.join(_TIMEOUT_)
 
-    for j in range(0, len(threads), _MAX_THREADS_):
+    thread_total = len(threads)
+
+    for j in range(0, thread_total, _MAX_THREADS_):
         try:
             for i in range(j, j+_MAX_THREADS_, 1):
-                threads[i].start()
+                print "Start thread: ", i
+                if i < thread_total:
+                    threads[i].start()
+                else:
+                    #raise Exception("Not in thread list")
+                    break
+        except Exception as e:
+            continue
 
+        try:
             for i in range(j, j+_MAX_THREADS_, 1):
-                threads[i].join(_TIMEOUT_)
-        except:
+                print "Join thread: ", i
+                if i < thread_total:
+                    threads[i].join(_TIMEOUT_)
+                else:
+                    #raise Exception("Not in thread list")
+                    break
+        except Exception as e:
             continue
 
     return [t.RESULT for t in threads]
-
 
 
 if __name__ == '__main__':
@@ -93,8 +107,6 @@ if __name__ == '__main__':
         #p_queue = zip(instruments, instruments[1:], instruments[2:], instruments[3:])
 
         results = gather(exchange, instruments)
-
-        sys.exit(0)
 
         for result in results:
             
