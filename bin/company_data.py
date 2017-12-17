@@ -59,13 +59,11 @@ if __name__ == '__main__':
         logger.debug("Exchange was not found")
         exit(1)
 
-    print exchange
-
     if (exchange['world_ex_id'] == 'NASDAQ' or exchange['yahoo_code']) and instruments:
 
         for instrument in instruments:
             if exchange['world_ex_id'] == "NASDAQ":
-                instrumentUrl = 'https://finance.yahoo.com/quote/{0}?p={0}'.format(exchange['yahoo_code'])
+                instrumentUrl = 'https://finance.yahoo.com/quote/{0}?p={0}'.format(instrument)
             else:
                 instrumentUrl = 'https://finance.yahoo.com/quote/{0}.{1}?p={0}.{1}'.format(instrument, exchange['yahoo_code'])
 
@@ -132,7 +130,7 @@ if __name__ == '__main__':
             instrument['currency'] = price['currency']
             instrument['exchange_id'] = exchange['id']
 
-            print instrument
+            #print instrument
 
             try:
 
