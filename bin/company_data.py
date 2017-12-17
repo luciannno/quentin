@@ -61,11 +61,13 @@ if __name__ == '__main__':
 
     print exchange
 
-    if exchange['yahoo_code'] and instruments:
+    if (exchange['world_ex_id'] == 'NASDAQ' or exchange['yahoo_code']) and instruments:
 
         for instrument in instruments:
-
-            instrumentUrl = 'https://finance.yahoo.com/quote/{0}.{1}?p={0}.{1}'.format(instrument, exchange['yahoo_code'])
+            if exchange['world_ex_id'] == "NASDAQ":
+                instrumentUrl = 'https://finance.yahoo.com/quote/{0}?p={0}'.format(exchange['yahoo_code'])
+            else:
+                instrumentUrl = 'https://finance.yahoo.com/quote/{0}.{1}?p={0}.{1}'.format(instrument, exchange['yahoo_code'])
 
             try:
                 instrumentPage = urlopen(instrumentUrl)
