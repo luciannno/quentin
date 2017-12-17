@@ -33,7 +33,6 @@ def gather(exchange, instruments):
                 if i < thread_total:
                     threads[i].start()
                 else:
-                    #raise Exception("Not in thread list")
                     break
         except Exception as e:
             continue
@@ -44,7 +43,6 @@ def gather(exchange, instruments):
                 if i < thread_total:
                     threads[i].join(_TIMEOUT_)
                 else:
-                    #raise Exception("Not in thread list")
                     break
         except Exception as e:
             continue
@@ -109,17 +107,17 @@ if __name__ == '__main__':
             en = datetime.datetime.fromtimestamp(result['end']).strftime('%Y-%m-%d %H:%M:%S')
 
             if args.output:
-                file      = "{}_{}.txt".format(result['exchange'], result['instrument'])
-                folder    = args.output
-                full_path = os.path.join(folder, file)
+                filename = "{}_{}.txt".format(result['exchange'], result['instrument'])
+                folder = args.output
+                full_path = os.path.join(folder, filename)
                 result['data'].to_json(full_path)
 
             frame = result['data']
             frame.reset_index(level=0, inplace=True)    
             wildcards = ','.join(['%s'] * len(frame.columns))
-            cols=[k for k in frame.dtypes.index]
-            colnames = ','.join(cols)
-            insert_sql = 'INSERT IGNORE INTO %s (%s) VALUES (%s)' % ('min_price', colnames, wildcards)
+            cols = [k for k in frame.dtypes.index]
+            col_names = ','.join(cols)
+            insert_sql = 'INSERT IGNORE INTO %s (%s) VALUES (%s)' % ('min_price', col_names, wildcards)
             data = [tuple(x) for x in frame.values]
 
             db.cursor.executemany(insert_sql, data)
