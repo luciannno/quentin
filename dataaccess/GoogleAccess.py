@@ -10,36 +10,32 @@ import re
 import pandas as pd
 import requests
 
+
 def get_google_finance_intraday(exchange, instrument, period=60, days=1):
     """
     Retrieve intraday stock data from Google Finance.
-    Parameters
-    ----------
-    instrument : str
-        Company instrument symbol.
-    period : int
-        Interval between stock values in seconds.
-    days : int
-        Number of days of data to retrieve.
-    Returns
-    -------
-    df : pandas.DataFrame
-        DataFrame containing the opening price, high price, low price,
+
+    :param exchange:
+    :param instrument: str Company instrument symbol.
+    :param period: int Interval between stock values in seconds.
+    :param days: int Number of days of data to retrieve.
+    :return: pandas.DataFrame DataFrame containing the opening price, high price, low price,
         closing price, and volume. The index contains the times associated with
         the retrieved price values.
     """
 
-    uri = 'https://finance.google.com/finance/getprices' \
-          '?x={exchange}&i={period}&p={days}d&q={instrument}&f=d,o,h,l,c,v&df=cpct'.format(exchange=exchange,
-                                                                                       instrument=instrument,
-                                                                                       period=period,
-                                                                                       days=days)
+    uri = ("https://finance.google.com/finance/getprices"
+          "?x={exchange}&i={period}&p={days}d&q={instrument}"
+          "&f=d,o,h,l,c,v&df=cpct") . format(exchange=exchange,
+                                            instrument=instrument,
+                                            period=period,
+                                            days=days)
     page = requests.get(uri)
     reader = csv.reader(page.content.splitlines())
     columns = ['open_price', 'high_price', 'low_price', 'close_price', 'volume']
     rows = []
     times = []
-    #print uri
+
     for row in reader:
         if re.match('^[a\d]', row[0]):
             if row[0].startswith('a'):

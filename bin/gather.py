@@ -24,12 +24,6 @@ def gather(exchange, instruments):
 
     threads = [dt.datagather.DataGather(exchange, instrument) for instrument in instruments]
 
-    #for t in threads:
-    #    t.start()
-
-    #for t in threads:
-    #    t.join(_TIMEOUT_)
-
     thread_total = len(threads)
 
     for j in range(0, thread_total, _MAX_THREADS_):
@@ -90,9 +84,14 @@ if __name__ == '__main__':
     db = dt.DBAccess()
     
     if args.exchange and args.instruments:
-        #exchange = args.exchange
-        #instruments = args.instruments
-        pass
+
+        logger.info(("Gather called with Exchange and instruments" 
+                    "Ex:{} Inst:{}").format(args.exchange,
+                                            args.instruments))
+
+        print dt.get_google_finance_intraday(args.exchange, args.instruments[0])
+
+        sys.exit(1)
 
     elif args.exchange:
         exchange = db.getExchange(world_ex_id=args.exchange)[0]
@@ -100,11 +99,7 @@ if __name__ == '__main__':
 
     logger.debug('Exchange: {}'.format(exchange['world_ex_id']))
 
-    #print [i[0] for i in instruments]
-        
     if exchange and instruments:
-
-        #p_queue = zip(instruments, instruments[1:], instruments[2:], instruments[3:])
 
         results = gather(exchange, instruments)
 
@@ -119,13 +114,6 @@ if __name__ == '__main__':
                 full_path = os.path.join(folder, file)
                 result['data'].to_json(full_path)
 
-            #print result
-
-            #try:
-            #    result['data'].to_sql(con=self.db.engine, name='min_price', if_exists='append', index=False)
-            #except Exception, e:
-            #    print 'Failed to mysql' + str(e)
-
             frame = result['data']
             frame.reset_index(level=0, inplace=True)    
             wildcards = ','.join(['%s'] * len(frame.columns))
@@ -134,21 +122,8 @@ if __name__ == '__main__':
             insert_sql = 'INSERT IGNORE INTO %s (%s) VALUES (%s)' % ('min_price', colnames, wildcards)
             data = [tuple(x) for x in frame.values]
 
-            #print data
-            
-            #print insert_sql
-            
-            #result['data'].reset_index(level=0, inplace=True) #['price_date'] = result['data'].price_date
-            #data_dict = result['data'].index.tolist()
-
-            #print data_dict[0]
-            
-            #print result['data'].columns.values.tolist()
-            #print result['data'].index.name
-
             db.cursor.executemany(insert_sql, data)
             logger.info("Instrument: {} : {} | Start: {} | End: {}".format(result['exchange'], result['instrument'], st, en))
             logger.debug('Rows affected: {}'.format(db.cursor.rowcount))
             
             db.connection.commit()
-            

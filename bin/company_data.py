@@ -47,21 +47,16 @@ if __name__ == '__main__':
     if args.exchange and args.instruments:
         exchange = args.exchange
         instruments = args.instruments
-
-    elif args.exchange:
-        pass
-        #exchange = args.exchange
-        #instruments = db.getAllInstrumentsinExchange(args.exchange)
+    else:
+        logger.debug("No exchange and instrument provided")
+        sys.exit(1)
 
     logger.debug('Exchange: {}'.format(exchange))
-
-    #print instruments[0]
-    #print [i[0] for i in instruments]
 
     try:
         exchange = db.getExchange(world_ex_id=exchange)[0]
     except:
-        print "Exchange was not found."
+        logger.debug("Exchange was not found")
         exit(1)
 
     print exchange
@@ -80,8 +75,8 @@ if __name__ == '__main__':
                 result = p.findall(data.string)
                 d = json.loads(result[0])
             except:
-                print instrumentUrl
-                print "Quote data not found. {}.{}".format(instrument, exchange['world_ex_id'])
+                logger.debug(instrumentUrl)
+                logger.debug("Quote data not found. {}.{}".format(instrument, exchange['world_ex_id']))
                 continue
 
             quoteSummaryStore = d['context']['dispatcher']['stores']['QuoteSummaryStore']
@@ -91,19 +86,25 @@ if __name__ == '__main__':
 
             #print json.dumps(quoteSummaryStore, indent=2)
 
-            company = { 'id': None,
-                        'name': price['longName'],
-                        'sector': summaryProfile['sector'],
-                        'industry': summaryProfile['industry']};
+            company = {'id' : None,
+                       'name' : price['longName']}
 
-            #print company
+            try:
+                company.update({'sector': summaryProfile['sector']})
+            except KeyError:
+                company.update({'sector': ""})
+
+            try:
+                company.update({'industry': summaryProfile['industry']})
+            except KeyError:
+                company.update({'industry': ""})
 
             try:
 
                 company['id'] = db.insertRow(table="company",
-                                          name=company['name'],
-                                          sector=company['sector'],
-                                          industry=company['industry'])
+                                             name=company['name'],
+                                             sector=company['sector'],
+                                             industry=company['industry'])
 
             except:
 
