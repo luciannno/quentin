@@ -1,4 +1,3 @@
-#!/usr/bin/env python 
 """
 Retrieve intraday stock data from Google Finance.
 """
