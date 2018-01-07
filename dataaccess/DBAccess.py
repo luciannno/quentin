@@ -3,6 +3,7 @@ import pandas as pd
 import MySQLdb
 import MySQLdb.cursors
 import db_config as cfg
+import warnings
 
 class DBAccess(object):
     """
@@ -18,6 +19,10 @@ class DBAccess(object):
         username = cfg.mysql['user']
         password = cfg.mysql['passwd']
         database = cfg.mysql['db']
+
+        # Turn MySQLdb warning into python exceptions
+        warnings.filterwarnings('error', category=MySQLdb.Warning)
+
         self.connection = MySQLdb.connect(hostname, username, password, database) #, cursorclass=MySQLdb.cursors.DictCursor
         self.cursor = self.connection.cursor()
         self.logger = logging.getLogger("quentin")
@@ -55,7 +60,20 @@ class DBAccess(object):
     def fetchAll(self, query):
         self.cursor.execute(query)
         return self.cursor.fetchall()
-    
+
+    def executemany(self, operation, seq_of_params):
+        """
+
+        :param operation:
+        :param seq_of_params:
+        :return:
+        """
+        try:
+            self.cursor.executemany(operation, seq_of_params)
+            return 0
+        except Exception as e:
+            return 1
+
     def updateRow(self, table, **data):
         idName = "id"
         id = data[idName]

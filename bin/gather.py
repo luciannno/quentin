@@ -120,8 +120,11 @@ if __name__ == '__main__':
             insert_sql = 'INSERT IGNORE INTO %s (%s) VALUES (%s)' % ('min_price', col_names, wildcards)
             data = [tuple(x) for x in frame.values]
 
-            db.cursor.executemany(insert_sql, data)
+            duplicate_count = db.executemany(insert_sql, data)
+
             logger.info("Instrument: {} : {} | Start: {} | End: {}".format(result['exchange'], result['instrument'], st, en))
             logger.debug('Rows affected: {}'.format(db.cursor.rowcount))
             
             db.connection.commit()
+
+            logger.debug('Duplicates found: {}' . format(duplicate_count))
