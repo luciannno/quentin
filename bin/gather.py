@@ -8,6 +8,7 @@ import time
 import datetime
 import argparse
 import logging
+import pytz
 import quentin_config as cfg
 
 import dataaccess as dt
@@ -80,14 +81,19 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     db = dt.DBAccess()
-    
+
     if args.exchange and args.instruments:
 
         logger.info(("Gather called with Exchange and instruments" 
                     "Ex:{} Inst:{}").format(args.exchange,
                                             args.instruments))
 
-        print dt.get_google_finance_intraday(args.exchange, args.instruments[0])
+        exchange = db.getExchange(world_ex_id=args.exchange)[0]
+        tz_local = pytz.timezone(exchange['time_zone'])
+        pd = dt.get_google_finance_intraday(args.exchange, args.instruments[0])
+        pd = pd.tz_localize('America/Sao_Paulo').tz_convert(exchange['time_zone'])
+
+        print pd
 
         sys.exit(1)
 
