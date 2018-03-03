@@ -148,7 +148,7 @@ class DBAccess(object):
         Retrieve a list of instruments registered against a single Exchange
         """
         
-        sql = """SELECT a.google_symbol, a.id 
+        sql = """SELECT a.google_symbol, a.id, a.instrument_type_id 
         FROM instrument as a inner join exchange as b on a.exchange_id=b.id 
         where b.world_ex_id = %s""";
 

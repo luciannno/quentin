@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-"""Data gather for Quentin"""
+"""
+Data gather for Quentin
+"""
 
 import os
 import sys
@@ -8,6 +10,7 @@ import time
 import datetime
 import argparse
 import logging
+from logging.handlers import RotatingFileHandler
 import pytz
 import quentin_config as cfg
 
@@ -21,6 +24,9 @@ _MAX_THREADS_ = 8
 def gather(exchange, instruments):
     """
     Initialise threads to download data
+    :param exchange:
+    :param instruments:
+    :return:
     """
 
     threads = [dt.datagather.DataGather(exchange, instrument) for instrument in instruments]
@@ -53,18 +59,6 @@ def gather(exchange, instruments):
 
 if __name__ == '__main__':
 
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    # create a file handler
-    handler = logging.FileHandler(cfg.quentin['gather_log'])
-    handler.setLevel(logging.DEBUG)
-    # create a logging format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    # add the handlers to the logger
-    logger.addHandler(handler)
-
     exchange    = None
     instruments = None
     
@@ -76,11 +70,25 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--instruments', metavar='instruments', type=str, action='append', dest='instruments', required=False, help='Instrument to query data source')
     parser.add_argument('-o', '--output', metavar='output', type=str, dest='output', required=False, help='Set output directory')
     parser.add_argument('-v', '--verbosity', action='store_true', default=False, help="The verbosity of the output reporting for the found search results.")
-    parser.add_argument('-s', '--save', action='store_true', default=False, help="Save all results in database")
+    parser.add_argument('-d', '--dontsave', action='store_true', default=False, help="Do not save results in database")
 
     args = parser.parse_args()
 
     db = dt.DBAccess()
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    # create a file handler
+    handler = RotatingFileHandler(cfg.quentin['gather_log'],maxBytes=32*1024*1024,backupCount=5)
+    handler.setLevel(logging.DEBUG)
+    # create a logging format
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    # add the handlers to the logger
+    logger.addHandler(handler)
+
+    if args.verbosity:
+        logger.addHandler(logging.StreamHandler(sys.stdout))
 
     if args.exchange and args.instruments:
 
@@ -123,14 +131,18 @@ if __name__ == '__main__':
             wildcards = ','.join(['%s'] * len(frame.columns))
             cols = [k for k in frame.dtypes.index]
             col_names = ','.join(cols)
-            insert_sql = 'INSERT IGNORE INTO %s (%s) VALUES (%s)' % ('min_price', col_names, wildcards)
+            insert_sql = 'INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE' % ('min_price', col_names, wildcards)
             data = [tuple(x) for x in frame.values]
 
-            duplicate_count = db.executemany(insert_sql, data)
+            if not args.dontsave:
+                duplicate_count = db.executemany(insert_sql, data)
 
-            logger.info("Instrument: {} : {} | Start: {} | End: {}".format(result['exchange'], result['instrument'], st, en))
-            logger.debug('Rows affected: {}'.format(db.cursor.rowcount))
-            
-            db.connection.commit()
+                logger.info("Instrument: {} : {} | Start: {} | End: {}".format(result['exchange'], result['instrument'], st, en))
+                logger.debug('Rows affected: {}'.format(db.cursor.rowcount))
 
-            logger.debug('Duplicates found: {}' . format(duplicate_count))
+                db.connection.commit()
+
+                logger.debug('Duplicates found: {}' . format(duplicate_count))
+            else:
+                logger.debug('Rows affected: {}'.format(db.cursor.rowcount))
+                logger.debug("Data was not added")
