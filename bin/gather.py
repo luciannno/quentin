@@ -131,7 +131,7 @@ if __name__ == '__main__':
             wildcards = ','.join(['%s'] * len(frame.columns))
             cols = [k for k in frame.dtypes.index]
             col_names = ','.join(cols)
-            insert_sql = 'INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE' % ('min_price', col_names, wildcards)
+            insert_sql = 'INSERT IGNORE INTO %s (%s) VALUES (%s)' % ('min_price', col_names, wildcards)
             data = [tuple(x) for x in frame.values]
 
             if not args.dontsave:
